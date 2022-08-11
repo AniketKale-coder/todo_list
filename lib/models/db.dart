@@ -1,18 +1,14 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
-// should install these
-// refer description for more
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
-// the database helper class
-class Databasehelper {
-  // database name
+class TodoDatabase extends ChangeNotifier {
   static const _databasename = "todo.db";
   static const _databaseversion = 1;
 
-  // the table name
   static const table = "my_table";
 
   // column names
@@ -23,8 +19,8 @@ class Databasehelper {
   static Database? _database;
 
   // privateconstructor
-  Databasehelper._privateConstructor();
-  static final Databasehelper instance = Databasehelper._privateConstructor();
+  TodoDatabase._privateConstructor();
+  static final TodoDatabase instance = TodoDatabase._privateConstructor();
 
   // asking for a database
   Future<Database?> get databse async {
@@ -57,7 +53,9 @@ class Databasehelper {
   // functions to insert data
   Future<int> insert(Map<String, dynamic> row) async {
     Database? db = await instance.databse;
-    return await db!.insert(table, row);
+    int res = await db!.insert(table, row);
+    notifyListeners();
+    return res;
   }
 
   // function to query all the rows
@@ -66,10 +64,17 @@ class Databasehelper {
     return await db!.query(table);
   }
 
+  // function to query all the rows
+  Future<Map<String, dynamic>> queryone(int id) async {
+    Database? db = await instance.databse;
+    return (await db!.query(table, where: "id = ?", whereArgs: [id])).first;
+  }
+
   // function to delete some data
   Future<int> deletedata(int id) async {
     Database? db = await instance.databse;
-    var res = await db!.delete(table, where: "id = ?", whereArgs: [id]);
+    int res = await db!.delete(table, where: "id = ?", whereArgs: [id]);
+    notifyListeners();
     return res;
   }
 }
